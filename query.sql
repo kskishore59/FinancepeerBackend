@@ -1,0 +1,1 @@
+INSERT INTO client ( username, password) VALUES ( 'Kishore', 'Kishore12345')
