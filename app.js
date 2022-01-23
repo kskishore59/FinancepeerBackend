@@ -38,6 +38,14 @@ const convertJsonDataToObject = (data) => {
   };
 };
 
+app.get("/", async (request, response) => {
+  try {
+    response.send("App is working");
+  } catch (error) {
+    response.send(error.message);
+  }
+});
+
 app.post("/register/", async (request, response) => {
   try {
     const { username, password } = request.body;
