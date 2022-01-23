@@ -5,18 +5,10 @@ const path = require("path");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-const corsOptions = {
-  origin: true,
-  credentials: true, //access-control-allow-credentials:true
-};
 
 const app = express();
 app.use(express.json());
-app.use(cors(corsOptions)); // Use this after the variable declaration
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", req.header("origin"));
-  next();
-});
+app.use(cors()); // Use this after the variable declaration
 
 const databasePath = path.join(__dirname, "financePeer.db");
 
@@ -28,8 +20,8 @@ const initializeDBAndServer = async () => {
       filename: databasePath,
       driver: sqlite3.Database,
     });
-    app.listen(process.env.PORT || 3000, () => {
-      console.log("Server Running at http://localhost:3000/");
+    app.listen(process.env.PORT || 3002, () => {
+      console.log("Server Running at http://localhost:3002/");
     });
   } catch (e) {
     console.log(`DB Error: ${e.message}`);
@@ -58,7 +50,7 @@ app.get("/", async (request, response) => {
 
 app.get("/users", async (req, res) => {
   try {
-    const query = `SELECT * FROM client`;
+    const query = `SELECT * FROM user`;
     const response = await db.all(query);
     res.send(response);
   } catch (error) {
@@ -71,7 +63,7 @@ app.post("/register/", async (request, response) => {
     const { username, password } = request.body;
     // check if user already exists with the same username
     const selectUserQuery = `
-    SELECT * FROM client WHERE userName = '${username}';
+    SELECT * FROM user WHERE username = '${username}';
     `;
     const dbUser = await db.get(selectUserQuery);
     if (dbUser) {
@@ -84,7 +76,7 @@ app.post("/register/", async (request, response) => {
       // Create a new user
       const hashedPassword = await bcrypt.hash(password, 10);
       const addNewUserQuery = `
-        INSERT INTO client ( userName, password) 
+        INSERT INTO user ( username, password) 
         VALUES ( '${username}', '${hashedPassword}')
         `;
       await db.run(addNewUserQuery);
@@ -100,8 +92,9 @@ app.post("/login/", async (request, response) => {
   try {
     const { username, password } = request.body;
     // check if the username exists
+    console.log(username, password);
     const selectUserQuery = `
-    SELECT * FROM client WHERE userName = '${username}';
+    SELECT * FROM user WHERE username = '${username}';
     `;
     const dbUser = await db.get(selectUserQuery);
     if (!dbUser) {
@@ -151,24 +144,22 @@ const authenticateUser = (request, response, next) => {
 
 app.post("/add/", authenticateUser, async (request, response) => {
   try {
-    const { data } = request.body;
-    const convertedData = data.map((each) => convertJsonDataToObject(each));
-
-    const values = convertedData.map(
-      (each) => `('${each.userId}', ${each.id}, ${each.title}, ${each.body})`
+    const values = request.body.map(
+      (each) =>
+        `('${each.userId}', '${each.id}', '${each.title}', '${each.body}')`
     );
 
     const valuesString = values.join(",");
 
-    const addBookQuery = `
+    const addData = `
     INSERT INTO
       user_data (user_id, id, title ,body)
     VALUES
        ${valuesString};`;
 
-    const dbResponse = await db.run(addBookQuery);
+    const dbResponse = await db.run(addData);
     const bookId = dbResponse.lastID;
-    response.send({ bookId: bookId });
+    response.send({ Id: bookId });
   } catch (error) {
     response.send(error.message);
   }
@@ -177,9 +168,9 @@ app.post("/add/", authenticateUser, async (request, response) => {
 app.get("/data/", authenticateUser, async (request, response) => {
   try {
     const getDataQuery = `
-  SELECT * FROM user_data`;
+            SELECT * FROM user_data`;
 
-    const dbResponse = await db.all(addBookQuery);
+    const dbResponse = await db.all(getDataQuery);
     response.send(dbResponse);
   } catch (error) {
     response.send(error.message);
