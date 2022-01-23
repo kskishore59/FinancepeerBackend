@@ -6,9 +6,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const corsOptions = {
-  origin: "*",
+  origin: true,
   credentials: true, //access-control-allow-credentials:true
-  optionSuccessStatus: 200,
 };
 
 const app = express();
