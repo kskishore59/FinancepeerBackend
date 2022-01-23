@@ -13,6 +13,10 @@ const corsOptions = {
 const app = express();
 app.use(express.json());
 app.use(cors(corsOptions)); // Use this after the variable declaration
+app.use(function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", req.header("origin"));
+  next();
+});
 
 const databasePath = path.join(__dirname, "financePeer.db");
 
