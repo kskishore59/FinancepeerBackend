@@ -56,6 +56,16 @@ app.get("/", async (request, response) => {
   }
 });
 
+app.get("/users", async (req, res) => {
+  try {
+    const query = `SELECT * FROM client`;
+    const response = await db.all(query);
+    res.send(response);
+  } catch (error) {
+    console.log(error.message);
+  }
+});
+
 app.post("/register/", async (request, response) => {
   try {
     const { username, password } = request.body;
